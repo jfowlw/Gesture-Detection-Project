@@ -72,14 +72,14 @@ int main()
 	templ = Mat::zeros(temp.rows, temp.cols, CV_8UC1); //Returns a zero array of same size as src mat, and of type CV_8UC1
 	//img = Mat::zeros(image2.rows, image2.cols, CV_8UC1);
 	mySkinDetect(temp, templ);
-	imshow("templ", templ);
+	//imshow("templ", templ);
 	//create a window called "MyVideo"
 	namedWindow("MyVideo0", WINDOW_AUTOSIZE);
 	//create a window called "Skin" for skin color detection
 	namedWindow("Skin", WINDOW_AUTOSIZE);
-
+	//namedWindow("Contours", CV_WINDOW_AUTOSIZE);
 	namedWindow("Results", WINDOW_AUTOSIZE);
-
+	RNG rng(12345);
 	while (1)
 	{
 		// read a new frame from video
@@ -106,29 +106,58 @@ int main()
 		frameDest = Mat::zeros(frame.rows, frame.cols, CV_8UC1); //Returns a zero array of same size as src mat, and of type CV_8UC1
 		mySkinDetect(frame, frameDest);
 		result = Mat::zeros(frame.rows, frame.cols, CV_8UC1);
-		int erosion_size = 3;
+
+		
+		
+
+		//int erosion_size = 3;
 		//Mat element = getStructuringElement(MORPH_RECT,
 		//	Size(2 * erosion_size + 1, 2 * erosion_size + 1),
 		//	Point(erosion_size, erosion_size)
 		//);
 
+		//erode(frameDest, frameDest, element); 
 		//erode(frameDest, frameDest, element);
 		//dilate(frameDest, frameDest, element);
 		//dilate(frameDest, frameDest, element);
+		/*
+		vector<vector<Point> > contours;
+		vector<Vec4i> hierarchy;
+		findContours(frameDest, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+		Mat drawing = Mat::zeros(frameDest.size(), CV_8UC3);
+
+		for (int i = 0; i< contours.size(); i++)
+		{
+			Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+			drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point());
+		}
+
+		/// Show in a window
+		
+		imshow("Contours", drawing);*/
 
 
-		matchTemplate(frameDest, templ, result, CV_TM_CCOEFF);
+		
+			
+		matchTemplate(frameDest, templ, result, CV_TM_CCOEFF_NORMED);
 		//matchTemplate(frame, temp, result, CV_TM_SQDIFF_NORMED);
-		normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
-
+		//normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
 		double minVal, maxVal;
 		Point  minLoc, maxLoc, matchLoc;
 
 		minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, Mat());
 		cout << maxVal << endl;
-		matchLoc = maxLoc;
-		rectangle(result, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar(200,200,0), 2, 8, 0);
-		rectangle(frame, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar::all(0), 2, 8, 0);
+		if (maxVal > .6) {
+
+
+			matchLoc = maxLoc;
+
+			rectangle(result, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar(200, 200, 0), 2, 8, 0);
+			rectangle(frame, matchLoc, Point(matchLoc.x + templ.cols, matchLoc.y + templ.rows), Scalar::all(0), 2, 8, 0);
+			}
+
+			
+		
 		imshow("MyVideo0", frame);
 		imshow("Skin", frameDest);
 		imshow("Results", result);
